@@ -1,28 +1,21 @@
 version: '3.7'
 
-networks:
-  app-tier:
-    driver: bridge
-
 services:
   h2o:
     build: .
     container_name: h2o
-    depends_on:
-      - php-fpm
     ports:
       - 80:${HTTP_PORT}
       - 443:${HTTPS_PORT}
+    links:
+      - actix
     env_file:
       .env
     volumes:
       - /containers/h2o:/etc/h2o
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/log/h2o:/var/log/h2o
-      - /var/www:/var/www
     tmpfs: /tmp
-    networks:
-      - app-tier
     working_dir: /etc/h2o
     restart: always
     cap_add:
@@ -32,11 +25,10 @@ services:
       - sys_admin
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=0
-  php-fpm:
-    image: php:7.4-fpm-alpine
-    container_name: php-fpm
+  actix:
+    image: actix:latest
+    container_name: actix
+    working_dir: /usr/src/actix
     volumes:
-      - /var/www:/var/www
-    networks:
-      - app-tier
-      
+      - /finkrer.wtf/static:/usr/src/actix/static
+    restart: unless-stopped
