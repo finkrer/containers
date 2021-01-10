@@ -1,20 +1,19 @@
-version: '3.7'
+version: "3.7"
 
 services:
   h2o:
     build: .
+    image: h2o:latest
     container_name: h2o
     ports:
       - 80:${HTTP_PORT}
       - 443:${HTTPS_PORT}
-    links:
-      - actix
-    env_file:
-      .env
+    env_file: .env
     volumes:
       - /containers/h2o:/etc/h2o
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/log/h2o:/var/log/h2o
+      - /private:/var/www/finkrer.wtf/private
     tmpfs: /tmp
     working_dir: /etc/h2o
     restart: always
@@ -25,10 +24,9 @@ services:
       - sys_admin
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=0
-  actix:
-    image: actix:latest
-    container_name: actix
-    working_dir: /usr/src/actix
-    volumes:
-      - /finkrer.wtf/static:/usr/src/actix/static
-    restart: unless-stopped
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: reverse_proxy
